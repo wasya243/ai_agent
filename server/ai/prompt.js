@@ -213,7 +213,7 @@ const getPrompt = (text) => `
         {
             "intent": "book_table",
             "condition": {
-                "operator": "AND",
+                "operator": "OR",
                 "conditions: [
                     {
                         "type": "booking_check_by_table",
@@ -225,7 +225,7 @@ const getPrompt = (text) => `
                         }
                     },
                     {
-                        "operator": "OR",
+                        "operator": "AND",
                         "conditions": [
                             {
                                 "type": "weather_check",
@@ -303,7 +303,6 @@ const getPrompt = (text) => `
                         "time": "tomorrow 10 am",
                         "data": {
                             "temperature": 20
-                        }
                     },
                     {
                         "type": "training_check_by_trainer",
@@ -329,24 +328,16 @@ const getPrompt = (text) => `
         {
             "intent": "book_training",
             "condition": {
-                "operator": "AND",
+                "operator": "OR",
                 "conditions": [
                     {
-                        "type": "training_check_by_trainer",
-                        "condition": "no_training",
-                        "time": "tomorrow 10 am",
-                        "data": {
-                            "trainer": "Max"
-                        }
+                        "type": "meeting_check",
+                        "condition": "no_meeting",
+                        "time": "tomorrow 10 am"
                     },
                     {
-                        "operator": "OR",
+                        "operator": "AND",
                         "conditions": [
-                            {
-                                "type": "meeting_check",
-                                "condition": "no_meeting",
-                                "time": "tomorrow 10 am"
-                            },
                             {
                                 "type": "weather_check",
                                 "condition": "above",
@@ -354,7 +345,15 @@ const getPrompt = (text) => `
                                 "data": {
                                     "temperature": 20
                                 }
-                            }
+                            },
+                            {
+                                "type": "training_check_by_trainer",
+                                "condition": "no_training",
+                                "time": "tomorrow 10 am",
+                                "data": {
+                                    "trainer": "Max"
+                                }
+                            },
                         ]
                     }
                 ]
@@ -412,24 +411,16 @@ const getPrompt = (text) => `
         {
             "intent": "doctor_appointment",
             "condition": {
-                "operator: "AND",
+                "operator: "OR",
                 "conditions": [
-                    {
-                        "type": "appointment_check_by_doctor",
-                        "condition": "no_appointment",
-                        "time": "tomorrow 10 am",
-                        "data": {
-                            "doctor": "Bill"
-                        }
+                     {
+                        "type": "meeting_check",
+                        "condition": "no_meeting",
+                        "time": "tomorrow 10 am"
                     },
                     {
-                        "operator": "OR",
+                        "operator": "AND",
                         "conditions": [
-                            {
-                                "type": "meeting_check",
-                                "condition": "no_meeting",
-                                "time": "tomorrow 10 am"
-                            },
                             {
                                 "type": "weather_check",
                                 "condition": "above",
@@ -437,7 +428,15 @@ const getPrompt = (text) => `
                                 "data": {
                                     "temperature": 20
                                 }
-                            }
+                            },
+                            {
+                                "type": "appointment_check_by_doctor",
+                                "condition": "no_appointment",
+                                "time": "tomorrow 10 am",
+                                "data": {
+                                    "doctor": "Bill"
+                                }
+                            },
                         ]
                     }
                 ]
@@ -456,41 +455,36 @@ const getPrompt = (text) => `
         {
             "intent": "book_training",
             "condition": {
-                "operator: "AND",
+                "operator: "OR",
                 "conditions": [
                     {
-                        "type": "training_check_by_trainer",
-                        "time": "tomorrow 10 am",
-                        "condition": "no_training",
-                        "data": {
-                            "trainer": "Max"
-                        }
+                        "type": "meeting_check",
+                        "condition": "no_meeting",
+                        "time": "tomorrow 10 am"
                     },
                     {
-                        "operator": "OR",
+                        "operator": "AND",
                         "conditions": [
                             {
-                                "type": "meeting_check",
-                                "condition": "no_meeting",
+                                "type": "appointment_check",
+                                "condition": "no_appointment",
                                 "time": "tomorrow 10 am"
                             },
                             {
-                                "operator": "AND",
-                                "conditions": [
-                                    {
-                                        "type": "appointment_check",
-                                        "condition": "no_appointment",
-                                        "time": "tomorrow 10 am"
-                                    },
-                                    {
-                                        "type": "weather_check",
-                                        "condition": "above",
-                                        "time": "tomorrow 10 am",
-                                        "data": {
-                                            "temperature": 20,
-                                        }
-                                    }
-                                ]
+                                "type": "weather_check",
+                                "condition": "above",
+                                "time": "tomorrow 10 am",
+                                "data": {
+                                    "temperature": 20,
+                                }
+                            }, 
+                            {
+                                "type": "training_check_by_trainer",
+                                "time": "tomorrow 10 am",
+                                "condition": "no_training",
+                                "data": {
+                                    "trainer": "Max"
+                                }
                             }
                         ]
                     }
@@ -510,41 +504,36 @@ const getPrompt = (text) => `
         {
             "intent": "doctor_appointment",
             "condition": {
-                "operator": "AND",
+                "operator": "OR",
                 "conditions": [
                     {
-                        "type": "appointment_check_by_doctor",
-                        "time": "tomorrow 10 am",
-                        "condition": "no_appointment",
-                        "data": {
-                            "doctor": "Bill"
-                        }
+                        "type": "meeting_check",
+                        "condition": "no_meeting",
+                        "time": "tomorrow 10 am"
                     },
                     {
-                        "operator": "OR",
+                        "operator": "AND",
                         "conditions": [
                             {
-                                "type": "meeting_check",
-                                "condition": "no_meeting",
+                                "type": "training_check",
+                                "condition": "no_training",
                                 "time": "tomorrow 10 am"
                             },
                             {
-                                "operator": "AND",
-                                "conditions": [
-                                    {
-                                        "type": "training_check",
-                                        "condition": "no_training",
-                                        "time": "tomorrow 10 am"
-                                    },
-                                    {
-                                        "type": "weather_check",
-                                        "condition": "above",
-                                        "time": "tomorrow 10 am",
-                                        "data": {
-                                            "temperature": 20,
-                                        }
-                                    }
-                                ]
+                                "type": "weather_check",
+                                "condition": "above",
+                                "time": "tomorrow 10 am",
+                                "data": {
+                                    "temperature": 20,
+                                }
+                            },
+                            {
+                                "type": "appointment_check_by_doctor",
+                                "time": "tomorrow 10 am",
+                                "condition": "no_appointment",
+                                "data": {
+                                    "doctor": "Bill"
+                                }
                             }
                         ]
                     }

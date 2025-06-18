@@ -37,7 +37,7 @@ function App() {
       try {
         const response = await fetch('http://localhost:3000/api/extract-intent', {
           method: 'POST',
-          body: JSON.stringify({ text: 'If the weather is good tomorrow at 10 am or I do not have meeting please book a table for 2 at restaurant A' }),
+          body: JSON.stringify({ text: 'If I do not have meeting tomorrow at 10 am or I do not have training and weather is good please book a doctor appointment with doctor Bill' }),
           // body: JSON.stringify({ text: finalTranscript }),
           headers: {
             'Content-Type': 'application/json'

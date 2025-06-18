@@ -134,7 +134,7 @@ app.post('/api/extract-intent', async (req, res) => {
     const prompt = getPrompt(text);
 
     try {
-        const response = await fetch(`${process.env.LLM_URI}/api/generate`, {
+        const response = await fetch(`${process.env.LLM_URI}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
