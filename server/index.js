@@ -161,7 +161,7 @@ app.post('/api/extract-intent', async (req, res) => {
       stream: false,
     });
 
-    logger.info({ LLM_URI: process.env.LLM_URI }, 'LLM url:');
+    // logger.info({ LLM_URI: process.env.LLM_URI }, 'LLM url:');
 
     const response = await fetch(`${process.env.LLM_URI}`, {
       method: 'POST',
@@ -177,8 +177,8 @@ app.post('/api/extract-intent', async (req, res) => {
 
     const output = JSON.parse(data.response);
 
-    logger.info({ text }, 'LLM question:');
-    logger.info({ output }, 'LLM answer:');
+    logger.infoWrite({ text }, 'LLM question:');
+    logger.infoWrite({ output }, 'LLM answer:');
 
     // console.log("here-lol", JSON.stringify(output));
 
