@@ -1,34 +1,35 @@
-const fetch = require('node-fetch-commonjs');
-const chrono = require('chrono-node');
+import fetch from 'node-fetch-commonjs';
+import * as chrono from 'chrono-node';
 
-const logger = require('../logger');
+import logger from '../logger.js';
 
-const checkWeather = async ({ time, temperature }) => {
-    logger.info({ scope: 'checkWeather', data: JSON.stringify({ time, temperature }) }, 'Incoming data');
+export const checkWeather = async ({ time, temperature }) => {
+  logger.info(
+    { scope: 'checkWeather', data: JSON.stringify({ time, temperature }) },
+    'Incoming data'
+  );
 
-    const parsed = chrono.parseDate(time); 
+  const parsed = chrono.parseDate(time);
 
-    logger.info({ scope: 'checkWeather', data: JSON.stringify({ time: parsed }) }, 'Parsed time');
+  logger.info(
+    { scope: 'checkWeather', data: JSON.stringify({ time: parsed }) },
+    'Parsed time'
+  );
 
-    const response = await fetch(`${process.env.WEATHER_API}/api/weather`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                time: parsed.toISOString()
-            }),
-    });
+  const response = await fetch(`${process.env.WEATHER_API}/api/weather`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ time: parsed.toISOString() }),
+  });
 
-    const parsedResponse = await response.json();
-    
-    logger.info({ scope: 'checkWeather', data: JSON.stringify(parsedResponse) }, 'Parsed responsse');
+  const parsedResponse = await response.json();
 
-    if (!parsedResponse.weather) return false;
+  logger.info(
+    { scope: 'checkWeather', data: JSON.stringify(parsedResponse) },
+    'Parsed response'
+  );
 
-    return parsedResponse.weather?.temperature === temperature; 
-}
+  if (!parsedResponse.weather) return false;
 
-module.exports = {
-    checkWeather
+  return parsedResponse.weather.temperature === temperature;
 };

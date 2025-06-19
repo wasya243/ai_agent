@@ -1,34 +1,37 @@
-require('dotenv').config({ path: '.env' });
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env' });
 
-const express = require('express');
-const bodyParser = require('body-parser');
-const fetch = require('node-fetch-commonjs');
-const cors = require('cors');
+import express from 'express';
+import bodyParser from 'body-parser';
+import fetch from 'node-fetch-commonjs';
+import cors from 'cors';
 
-const logger = require('./logger');
-const {
+import logger from './logger.js';
+import {
   checkIfBookingAvailable,
   bookTable,
-} = require('./services/restoraunt.service');
-const { checkWeather } = require('./services/weather.service');
-const { checkIfNoMeetingIsPresent } = require('./services/meetings.service');
-const {
+} from './services/restoraunt.service.js';
+import { checkWeather } from './services/weather.service.js';
+import { checkIfNoMeetingIsPresent } from './services/meetings.service.js';
+import {
   checkIfTrainingCanBeMade,
   checkIfNoTraining,
   bookTraining,
-} = require('./services/training.service');
-const {
+} from './services/training.service.js';
+import {
   checkIfDoctorAppointmentCanBeDone,
   checkIfNoDoctorAppointment,
   bookDoctorAppointment,
-} = require('./services/doctor.service');
-const getPrompt = require('./ai/prompt');
+} from './services/doctor.service.js';
+import getPrompt from './ai/prompt.js';
+
+const { json } = bodyParser;
 
 const app = express();
 const PORT = process.env.PORT;
 
 app.use(cors());
-app.use(bodyParser.json());
+app.use(json());
 
 // const ACTION_CHECKERS = {
 //     'book_table': {
@@ -168,12 +171,13 @@ app.post('/api/extract-intent', async (req, res) => {
       body: peyload,
     });
 
-    logger.info({ response }, 'LLM request answer: ');
+    // logger.info({ response }, 'LLM request answer: ');
 
     const data = await response.json();
 
     const output = JSON.parse(data.response);
 
+    logger.info({ text }, 'LLM question:');
     logger.info({ output }, 'LLM answer:');
 
     // console.log("here-lol", JSON.stringify(output));

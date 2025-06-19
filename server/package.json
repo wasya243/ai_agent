@@ -11,6 +11,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "type": "module",
   "dependencies": {
     "body-parser": "^2.2.0",
     "chrono-node": "^2.8.2",
@@ -23,6 +24,7 @@
     "string-similarity": "^4.0.4"
   },
   "devDependencies": {
+    "@types/pino": "^7.0.4",
     "nodemon": "^3.1.10"
   }
 }

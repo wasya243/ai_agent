@@ -554,4 +554,4 @@ const getPrompt = (text) => `
         ### Output
     `;
 
-module.exports = getPrompt;
+export default getPrompt;
