@@ -24,6 +24,7 @@ import {
   bookDoctorAppointment,
 } from './services/doctor.service.js';
 import getPrompt from './ai/prompt.js';
+import { createPrompt } from './ai/index.js';
 
 const { json } = bodyParser;
 
@@ -152,7 +153,8 @@ app.post('/api/extract-intent', async (req, res) => {
     return res.status(400).json({ error: 'Missing text input' });
   }
 
-  const prompt = getPrompt(text);
+  // const prompt = getPrompt(text);
+  const prompt = createPrompt({ question: text });
 
   try {
     const peyload = JSON.stringify({
@@ -171,10 +173,9 @@ app.post('/api/extract-intent', async (req, res) => {
       body: peyload,
     });
 
-    // logger.info({ response }, 'LLM request answer: ');
-
     const data = await response.json();
 
+    logger.info({ response: data.response }, 'LLM request answer: ');
     const output = JSON.parse(data.response);
 
     logger.infoWrite({ text }, 'LLM question:');
