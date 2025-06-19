@@ -89,7 +89,7 @@ function App() {
         text,
       });
 
-      console.log(`Answer parsed intent ${type}: `, { text, data });
+      console.log(`Answer parsed intent ${type}: `, { text, ...data });
 
       const message = data.actionCanBeDone
         ? 'Action can be done'

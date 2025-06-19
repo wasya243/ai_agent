@@ -168,13 +168,13 @@ app.post('/api/extract-intent', async (req, res) => {
       body: peyload,
     });
 
-    logger.info({ response }, 'LLM answer: ');
+    logger.info({ response }, 'LLM request answer: ');
 
     const data = await response.json();
 
     const output = JSON.parse(data.response);
 
-    logger.info({ data: JSON.stringify(output) }, 'Parsed string');
+    logger.info({ output }, 'LLM answer:');
 
     // console.log("here-lol", JSON.stringify(output));
 
@@ -182,7 +182,7 @@ app.post('/api/extract-intent', async (req, res) => {
 
     // res.send({ actionCanBeDone: actionCanBeMade });
 
-    res.send({ actionCanBeDone: true });
+    res.send({ actionCanBeDone: true, output });
   } catch (err) {
     logger.error(err, 'Error extracting intent');
     res.status(500).json({ error: 'Failed to extract intent' });
