@@ -6,11 +6,22 @@ const fetch = require('node-fetch-commonjs');
 const cors = require('cors');
 
 const logger = require('./logger');
-const { checkIfBookingAvailable, bookTable } = require('./services/restoraunt.service');
+const {
+  checkIfBookingAvailable,
+  bookTable,
+} = require('./services/restoraunt.service');
 const { checkWeather } = require('./services/weather.service');
 const { checkIfNoMeetingIsPresent } = require('./services/meetings.service');
-const { checkIfTrainingCanBeMade, checkIfNoTraining, bookTraining } = require('./services/training.service');
-const { checkIfDoctorAppointmentCanBeDone, checkIfNoDoctorAppointment, bookDoctorAppointment } = require('./services/doctor.service');
+const {
+  checkIfTrainingCanBeMade,
+  checkIfNoTraining,
+  bookTraining,
+} = require('./services/training.service');
+const {
+  checkIfDoctorAppointmentCanBeDone,
+  checkIfNoDoctorAppointment,
+  bookDoctorAppointment,
+} = require('./services/doctor.service');
 const getPrompt = require('./ai/prompt');
 
 const app = express();
@@ -33,139 +44,151 @@ app.use(bodyParser.json());
 
 // TODO: rewrite action performers based on new prompt
 const ACTION_PERFORMERS = {
-    'book_table': {
-        actions: [bookTable]
-    },
-    'doctor_appointment': {
-        actions: [bookDoctorAppointment]
-    },
-    'book_training': {
-        actions: [bookTraining]
-    }
+  book_table: {
+    actions: [bookTable],
+  },
+  doctor_appointment: {
+    actions: [bookDoctorAppointment],
+  },
+  book_training: {
+    actions: [bookTraining],
+  },
 };
 
 // TODO: rewrite condition chekers based on new prompt
 const CONDITION_CHECKERS = {
-    'meeting_check': checkIfNoMeetingIsPresent,
-    'weather_check': checkWeather,
-    'doctor_appointment_check': checkIfNoDoctorAppointment,
-    'book_training_check': checkIfNoTraining,
-    'table_check': checkIfBookingAvailable,
-    // Add more as needed
+  meeting_check: checkIfNoMeetingIsPresent,
+  weather_check: checkWeather,
+  doctor_appointment_check: checkIfNoDoctorAppointment,
+  book_training_check: checkIfNoTraining,
+  table_check: checkIfBookingAvailable,
+  // Add more as needed
 };
 
 // TODO: rewrite thif function so that it returns data related to condition related to action
 const evaluateConditionTree = async (node) => {
-    if (!node) return true;
+  if (!node) return true;
 
-    if (node.operator) {
-        const evaluations = await Promise.all(node.conditions.map(evaluateConditionTree));
+  if (node.operator) {
+    const evaluations = await Promise.all(
+      node.conditions.map(evaluateConditionTree)
+    );
 
-        if (node.operator === 'AND') {
-            return evaluations.every(Boolean);
-        } else if (node.operator === 'OR') {
-            return evaluations.some(Boolean);
-        } else {
-            throw new Error(`Unsupported operator: ${node.operator}`);
-        }
+    if (node.operator === 'AND') {
+      return evaluations.every(Boolean);
+    } else if (node.operator === 'OR') {
+      return evaluations.some(Boolean);
+    } else {
+      throw new Error(`Unsupported operator: ${node.operator}`);
     }
+  }
 
-    // Leaf node: map to correct checker
-    const checker = CONDITION_CHECKERS[node.type];
-    if (!checker) throw new Error(`No condition checker for type: ${node.type}`);
+  // Leaf node: map to correct checker
+  const checker = CONDITION_CHECKERS[node.type];
+  if (!checker) throw new Error(`No condition checker for type: ${node.type}`);
 
-    return checker(node);
+  return checker(node);
 };
 
-
 const checkIfActionCanBeFullfilled = async (intent) => {
-    const { intent: intentType, condition } = intent;
+  const { intent: intentType, condition } = intent;
 
-    // const conditions = ACTION_CHECKERS[intentType]?.conditionCheckers;
-    const actions = ACTION_PERFORMERS[intentType]?.actions;
+  // const conditions = ACTION_CHECKERS[intentType]?.conditionCheckers;
+  const actions = ACTION_PERFORMERS[intentType]?.actions;
 
-    // if (!conditions) return false;
+  // if (!conditions) return false;
 
-    let conditionCanBeFullfilled = true;
+  let conditionCanBeFullfilled = true;
 
-    if (condition) {
-        conditionCanBeFullfilled = await evaluateConditionTree(condition);
+  if (condition) {
+    conditionCanBeFullfilled = await evaluateConditionTree(condition);
+  }
+
+  logger.info(
+    { scope: 'checkIfActionCanBeFullfilled' },
+    `Action can be fullfilled: ${conditionCanBeFullfilled}`
+  );
+
+  if (!conditionCanBeFullfilled) return false;
+
+  for (const fn of actions) {
+    const result = await fn(intent.action);
+
+    if (!result) {
+      actionCanBeDone = false;
+      break;
     }
+  }
 
-    logger.info({ scope: 'checkIfActionCanBeFullfilled' }, `Action can be fullfilled: ${conditionCanBeFullfilled}`);
+  logger.info(
+    { scope: 'checkIfActionCanBeFullfilled' },
+    `Action can be done: ${actionCanBeDone}`
+  );
 
-    if (!conditionCanBeFullfilled) return false;
-
-    for (const fn of actions) {
-        const result = await fn(intent.action);
-
-        if (!result) {
-            actionCanBeDone = false;
-            break;
-        }
-    }
-
-    logger.info({ scope: 'checkIfActionCanBeFullfilled' }, `Action can be done: ${actionCanBeDone}`);
-
-    return actionCanBeDone;
-}
+  return actionCanBeDone;
+};
 
 const performAction = async (intent) => {
-    const { intent: intentType, condition } = intent;
-    const actions = ACTION_PERFORMERS[intentType]?.actions;
+  const { intent: intentType, condition } = intent;
+  const actions = ACTION_PERFORMERS[intentType]?.actions;
 
-    for (const fn of actions) {
-        const result = await fn(intent.action);
+  for (const fn of actions) {
+    const result = await fn(intent.action);
 
-        if (!result) {
-            actionCanBeDone = false;
-            break;
-        }
+    if (!result) {
+      actionCanBeDone = false;
+      break;
     }
-}
+  }
+};
 
 app.post('/api/extract-intent', async (req, res) => {
-    const { text } = req.body;
+  const { text } = req.body;
 
-    if (!text) {
-        return res.status(400).json({ error: 'Missing text input' });
-    }
+  if (!text) {
+    return res.status(400).json({ error: 'Missing text input' });
+  }
 
-    const prompt = getPrompt(text);
+  const prompt = getPrompt(text);
 
-    try {
-        const response = await fetch(`${process.env.LLM_URI}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                model: 'llama3.2',
-                prompt: prompt,
-                stream: false
-            }),
-        });
+  try {
+    const peyload = JSON.stringify({
+      model: 'llama3.2',
+      prompt: prompt,
+      stream: false,
+    });
 
-        const data = await response.json();
+    logger.info({ LLM_URI: process.env.LLM_URI }, 'LLM url:');
 
-        const output = JSON.parse(data.response);
+    const response = await fetch(`${process.env.LLM_URI}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: peyload,
+    });
 
-        logger.info({ data: JSON.stringify(output) }, 'Parsed string');
+    logger.info({ response }, 'LLM answer: ');
 
-        // console.log("here-lol", JSON.stringify(output));
+    const data = await response.json();
 
-        // const actionCanBeMade = await checkIfActionCanBeFullfilled(output);
+    const output = JSON.parse(data.response);
 
-        // res.send({ actionCanBeDone: actionCanBeMade });
+    logger.info({ data: JSON.stringify(output) }, 'Parsed string');
 
-        res.send({ actionCanBeDone: true });
-    } catch(err) {
-        logger.error(err, 'Error extracting intent');
-        res.status(500).json({ error: 'Failed to extract intent' });
-    }
+    // console.log("here-lol", JSON.stringify(output));
+
+    // const actionCanBeMade = await checkIfActionCanBeFullfilled(output);
+
+    // res.send({ actionCanBeDone: actionCanBeMade });
+
+    res.send({ actionCanBeDone: true });
+  } catch (err) {
+    logger.error(err, 'Error extracting intent');
+    res.status(500).json({ error: 'Failed to extract intent' });
+  }
 });
 
 app.listen(PORT, () => {
-    logger.info(`Intent extractor server running at http://localhost:${PORT}`);
+  logger.info(`Intent extractor server running at http://localhost:${PORT}`);
 });
-  

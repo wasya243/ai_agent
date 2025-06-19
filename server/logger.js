@@ -1,10 +1,10 @@
 const logger = require('pino')({
-    transport: {
+  transport: {
     target: 'pino-pretty',
     options: {
-      colorize: true
-    }
-  }
+      colorize: true,
+    },
+  },
 });
 
 module.exports = logger;

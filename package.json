@@ -1,0 +1,17 @@
+{
+  "name": "ai_agent",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "doctor-api",
+    "meetings-api",
+    "restoraunt-api",
+    "training-api",
+    "weather-api",
+    "front",
+    "server"
+  ],
+  "dependencies": {
+    "mongoose": "^8.16.0"
+  }
+}
