@@ -1,0 +1,16 @@
+@echo off
+
+echo Starting doctor-api...
+start cmd /k "cd doctor-api && npm run start"
+
+echo Starting meetings-api...
+start cmd /k "cd meetings-api && npm run start"
+
+echo Starting restoraunt-api...
+start cmd /k "cd restoraunt-api && npm run start"
+
+echo Starting training-api...
+start cmd /k "cd training-api && npm run start"
+
+echo Starting weather-api...
+start cmd /k "cd weather-api && npm run start"
