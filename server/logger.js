@@ -3,27 +3,66 @@ import fs from 'fs';
 import path from 'path';
 
 const logDir = path.resolve(process.cwd(), 'logs');
-if (!fs.existsSync(logDir)) fs.mkdirSync(logDir);
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir);
+}
 const logFile = path.join(logDir, 'app.log');
 
+const customLevels = {
+  infoWrite: 35,
+};
+
 const streams = [
-  { level: 'info', stream: process.stdout }, // консольний вивід (сирий)
-  { level: 'info', stream: pino.destination(logFile) }, // файл
+  {
+    level: 'infoWrite',
+    stream: pino.destination(logFile),
+  },
+  { level: 'infoWrite', stream: process.stdout },
 ];
 
 const logger = pino(
   {
-    level: 'info',
-    customLevels: { infoWrite: 35 },
-    useOnlyCustomLevels: false,
+    customLevels,
     transport: {
       target: 'pino-pretty',
       options: {
         colorize: true,
       },
     },
-  },
-  pino.multistream(streams)
+    useOnlyCustomLevels: false,
+    // formatters: {
+    //   level(label, number) {
+    //     return { level: label };
+    //   },
+    // },
+  }
+  // pino.multistream(streams)
 );
 
-export default logger;
+const transport = pino.transport({
+  targets: [
+    {
+      target: 'pino-pretty',
+      options: {
+        colorize: true,
+      },
+    },
+    {
+      target: 'pino/file',
+      level: 'info',
+      options: {
+        destination: './logs/app.log',
+      },
+    },
+  ],
+});
+
+const loggerExtend = pino(
+  {
+    customLevels,
+    useOnlyCustomLevels: false,
+  },
+  transport
+);
+
+export default loggerExtend;
