@@ -112,7 +112,7 @@ function App() {
               handleRequestIntent({ text: v.message, type: v.type })
             }
           >
-            {v.type}
+            {v.type} : {v.message}
           </button>
         ))}
       </section>
