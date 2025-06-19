@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import './App.css';
+import { requestExtractIntent } from './api';
+import { defineIntentMessages } from './utils';
 
 function App() {
   const [text, setText] = useState('');
@@ -73,21 +75,21 @@ function App() {
     };
 
     console.log('Send message');
+  };
 
+  const handleRequestIntent = async ({
+    text,
+    type,
+  }: {
+    text: string;
+    type: string;
+  }) => {
     try {
-      const response = await fetch('http://localhost:3000/api/extract-intent', {
-        method: 'POST',
-        body: JSON.stringify({
-          text: 'If I do not have meeting tomorrow at 10 am or I do not have training and weather is good please book a doctor appointment with doctor Bill',
-        }),
-        // body: JSON.stringify({ text: finalTranscript }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const { data } = await requestExtractIntent({
+        text,
       });
 
-      const data = await response.json();
-      console.log('here-data', data);
+      console.log(`Answer parsed intent ${type}: `, { text, data });
 
       const message = data.actionCanBeDone
         ? 'Action can be done'
@@ -102,6 +104,18 @@ function App() {
     <>
       <h1>Voice Asssitant</h1>
       <button onClick={startVoiceInput}>Speak</button>
+      <section className='btn-container'>
+        {defineIntentMessages.map((v) => (
+          <button
+            key={v.message}
+            onClick={() =>
+              handleRequestIntent({ text: v.message, type: v.type })
+            }
+          >
+            {v.type}
+          </button>
+        ))}
+      </section>
       <div>Spoken text: {text}</div>
     </>
   );

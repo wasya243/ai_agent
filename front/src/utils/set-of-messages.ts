@@ -1,4 +1,4 @@
-export const messages = [
+export const defineIntentMessages = [
   {
     type: 'book_table',
     message:
