@@ -157,7 +157,9 @@ app.post('/api/extract-intent', async (req, res) => {
     return res.status(400).json({ error: 'Missing text input' });
   }
 
-  // await extractIntent(text);
+  try {
+    await extractIntent(text);
+  } catch {}
 
   // const prompt = getPrompt(text);
   const prompt = createPrompt({ question: text });

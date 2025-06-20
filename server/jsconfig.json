@@ -1,22 +1,12 @@
 {
   "compilerOptions": {
     "target": "es2020",
-    "module": "esnext",
+    "module": "commonjs",
     "moduleResolution": "nodenext",
     "checkJs": true,
     "allowJs": true,
     "baseUrl": ".",
-    "paths": {
-      // "@root/*": ["*"]
-      "@ai/*": ["ai/*"],
-      "@services/*": ["services/*"],
-      "@common/*": ["common/*"]
-    },
     "outDir": "./build"
   },
   "exclude": ["node_modules"]
 }
-
-// "imports": {
-//   "#*": "./*"
-// },

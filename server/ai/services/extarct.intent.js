@@ -1,8 +1,6 @@
-// import logger from '#logger.js';
-
-import logger from '../../logger.js';
-import { configurationLLM } from '../common/index.js';
-import { intentQuestionPrompt } from '../prompts/index.js';
+import { configurationLLM } from '#ai/common/index.js';
+import { intentQuestionPrompt } from '#ai/index.js';
+import logger from '#logger.js';
 
 /**
  * @param {string} text

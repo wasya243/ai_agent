@@ -12,7 +12,12 @@
   "author": "",
   "license": "ISC",
   "type": "module",
-
+  "imports": {
+    "#*": "./*",
+    "#ai/*": "./ai/*",
+    "#services/*": "./services/*",
+    "#common/*": "./common/*"
+  },
   "dependencies": {
     "body-parser": "^2.2.0",
     "chrono-node": "^2.8.2",
