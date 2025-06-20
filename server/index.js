@@ -23,8 +23,12 @@ import {
   checkIfNoDoctorAppointment,
   bookDoctorAppointment,
 } from './services/doctor.service.js';
-import getPrompt from './ai/prompt.js';
-import { createPrompt } from './ai/index.js';
+import {
+  createPrompt,
+  intentQuestionPrompt,
+  getPrompt,
+  extractIntent,
+} from './ai/index.js';
 
 const { json } = bodyParser;
 
@@ -152,6 +156,8 @@ app.post('/api/extract-intent', async (req, res) => {
   if (!text) {
     return res.status(400).json({ error: 'Missing text input' });
   }
+
+  // await extractIntent(text);
 
   // const prompt = getPrompt(text);
   const prompt = createPrompt({ question: text });
