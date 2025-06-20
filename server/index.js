@@ -175,7 +175,7 @@ app.post('/api/extract-intent', async (req, res) => {
 
     const data = await response.json();
 
-    logger.info({ response: data.response }, 'LLM request answer: ');
+    // logger.info({ response: data.response }, 'LLM request answer: ');
     const output = JSON.parse(data.response);
 
     logger.infoWrite({ text }, 'LLM question:');
