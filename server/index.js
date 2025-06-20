@@ -157,9 +157,7 @@ app.post('/api/extract-intent', async (req, res) => {
     return res.status(400).json({ error: 'Missing text input' });
   }
 
-  try {
-    await extractIntent(text);
-  } catch {}
+  await extractIntent(text);
 
   // const prompt = getPrompt(text);
   const prompt = createPrompt({ question: text });
@@ -186,8 +184,8 @@ app.post('/api/extract-intent', async (req, res) => {
     // logger.info({ response: data.response }, 'LLM request answer: ');
     const output = JSON.parse(data.response);
 
-    logger.infoWrite({ text }, 'LLM question:');
-    logger.infoWrite({ output }, 'LLM answer:');
+    // logger.infoWrite({ text }, 'LLM question:');
+    // logger.infoWrite({ output }, 'LLM answer:');
 
     // console.log("here-lol", JSON.stringify(output));
 
