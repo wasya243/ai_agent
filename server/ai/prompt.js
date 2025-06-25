@@ -12,14 +12,18 @@ const getPrompt = (text) => `
         - Respond with a single valid **JSON object**
         - Respond ONLY with a valid JSON object. Do NOT explain. Do NOT include code blocks or markdown.
         - All keys and values must be in plain JSON, properly quoted
-        - Always include availability or feasibility checks for the action (e.g., doctor availability, restaurant table availability) as part of the condition block if the action depends on them.
 
         ## JSON Object Structure
 
         ---
 
         {
-            "intent": "<intent_type>",  
+            "intent": "<intent_type>",
+            "action_condition": {
+                "type": "<action_condition_type>",
+                "time": "<when_to_act>",
+                "data": { <structured_info> }
+            },
             "condition": {
                 "operator": "AND" | "OR",
                 "conditions": [ 
@@ -45,12 +49,6 @@ const getPrompt = (text) => `
             - The sentence includes both "AND" **and** "OR" operators, in a way that requires grouping (e.g., "if A or (B and C)").
             - The meaning clearly depends on operator precedence.
 
-        ---
-
-        ## Additional Role for conditions
-
-        - If the action itself depends on external availability (e.g., whether the doctor is available or a table can be booked), include that feasibility check as a condition, not inside the action block. Only once all conditions are met (including that the action is feasible), the action should be executed.
-
         ## Condition Types
 
         | Type                          | Description                                               |
@@ -67,9 +65,9 @@ const getPrompt = (text) => `
         Array condition objects examples:
         [
             {
-            "type": "meeting_check",
-            "condition": "no_meeting",
-            "time": "tomorrow 10 am"
+                "type": "meeting_check",
+                "condition": "no_meeting",
+                "time": "tomorrow 10 am"
             },
 
             {
@@ -131,11 +129,30 @@ const getPrompt = (text) => `
             }
         ]
 
+        ## Action Condition Check Rule (IMPORTANT)
+        
+        Before any action is performed, the system must check whether the action is allowed or available at the given time.
+        For example:
+            - You must check if a table is available before booking it
+            - You must check if a doctor is available before scheduling an appointment
+            - You must check if training can be scheduled before booking it
+
+        This is done by moving the action condition into "action_condition" block.
+
+
         ## Examples
         ### Input: If the weather is good tomorrow at 10 am please book a table for 2 at restaurant A
         ### Output:
         {
             "intent": "book_table",
+            "action_condition": {
+                "type": "weather_check",
+                "condition": "above",
+                "time": "tomorrow 10 am",
+                "data": {
+                    "temperature": 20
+                }
+            },
             "condition": {
                 "operator": "AND",
                 "conditions": [
@@ -144,16 +161,7 @@ const getPrompt = (text) => `
                         "condition": "above",
                         "time": "tomorrow 10 am",
                         "data": {
-                            "temperature": 20,
-                        }
-                    },
-                    {
-                        "type": "booking_check_by_table",
-                        "condition": "no_booking",
-                        "time": "tomorrow 10 am",
-                        "data": {
-                            "restaurant": "restaurant A",
-                            "people": 2
+                            "temperature": 20
                         }
                     }
                 ]
@@ -172,6 +180,14 @@ const getPrompt = (text) => `
         ### Output:
         {
             "intent": "book_table",
+            "action_condition": {
+                "type": "booking_check_by_table",
+                "time": "tomorrow 10 am",
+                "data": {
+                    "restaurant": "restaurant A",
+                    "people": 2
+                    }
+            },
             "condition": {
                 "operator": "AND",
                 "conditions": [
@@ -187,14 +203,6 @@ const getPrompt = (text) => `
                         "type": "meeting_check",
                         "condition": "no_meeting",
                         "time": "tomorrow 10 am"
-                    },
-                    {
-                        "type": "booking_check_by_table",
-                        "time": "tomorrow 10 am",
-                        "data": {
-                            "restaurant": "restaurant A",
-                            "people": 2
-                        }
                     }
                 ]
             },
@@ -212,35 +220,29 @@ const getPrompt = (text) => `
         ### Output:
         {
             "intent": "book_table",
+            "action_condition": {
+                "type": "booking_check_by_table",
+                "time": "tomorrow 10 am",
+                "data": {
+                    "restaurant": "restaurant A",
+                    "people": 2
+                    }
+            },
             "condition": {
                 "operator": "OR",
-                "conditions: [
+                "conditions": [
                     {
-                        "type": "booking_check_by_table",
+                        "type": "weather_check",
+                        "condition": "above",
                         "time": "tomorrow 10 am",
-                        "condition": "no_booking",
                         "data": {
-                            "restaurant": "restaurant A",
-                            "people": 2
-                        }
+                            "temperature": 20
+                            }
                     },
                     {
-                        "operator": "AND",
-                        "conditions": [
-                            {
-                                "type": "weather_check",
-                                "condition": "above",
-                                "time": "tomorrow 10 am",
-                                "data": {
-                                    "temperature": 20
-                                }
-                            },
-                            {
-                                "type": "meeting_check",
-                                "condition": "no_meeting",
-                                "time": "tomorrow 10 am"
-                            },
-                        ]
+                        "type": "meeting_check",
+                        "condition": "no_meeting",
+                        "time": "tomorrow 10 am"
                     }
                 ]
             },
@@ -258,6 +260,14 @@ const getPrompt = (text) => `
         ### Output:
         {
             "intent": "book_training",
+            "action_condition": {
+                "type": "training_check_by_trainer",
+                "condition": "no_training",
+                "time": "tomorrow 10 am",
+                "data": {
+                    "trainer": "Max"
+                }
+            },
             "condition": {
                 "operator": "AND",
                 "conditions": [
@@ -265,14 +275,6 @@ const getPrompt = (text) => `
                         "type": "meeting_check",
                         "condition": "no_meeting",
                         "time": "tomorrow 10 am"
-                    },
-                    {
-                        "type": "training_check_by_trainer",
-                        "condition": "no_training",
-                        "time": "tomorrow 10 am",
-                        "data": {
-                            "trainer": "Max"
-                        }
                     }
                 ]
             },
@@ -289,6 +291,14 @@ const getPrompt = (text) => `
         ### Output:
         {
             "intent": "book_training",
+            "action_condition": {
+                "type": "training_check_by_trainer",
+                "condition": "no_training",
+                "time": "tomorrow 10 am",
+                "data": {
+                    "trainer": "Max"
+                }
+            },
             "condition": {
                 "operator": "AND",
                 "conditions": [
@@ -303,13 +313,6 @@ const getPrompt = (text) => `
                         "time": "tomorrow 10 am",
                         "data": {
                             "temperature": 20
-                    },
-                    {
-                        "type": "training_check_by_trainer",
-                        "condition": "no_training",
-                        "time": "tomorrow 10 am",
-                        "data": {
-                            "trainer": "Max"
                         }
                     }
                 ]
@@ -327,34 +330,29 @@ const getPrompt = (text) => `
         ### Output:
         {
             "intent": "book_training",
+            "action_condition": {
+                "type": "training_check_by_trainer",
+                "condition": "no_training",
+                "time": "tomorrow 10 am",
+                "data": {
+                    "trainer": "Max"
+                }
+            },
             "condition": {
                 "operator": "OR",
                 "conditions": [
                     {
+                        "type": "weather_check",
+                        "condition": "above",
+                        "time": "tomorrow 10 am",
+                        "data": {
+                            "temperature": 20
+                        }
+                    },
+                    {
                         "type": "meeting_check",
                         "condition": "no_meeting",
                         "time": "tomorrow 10 am"
-                    },
-                    {
-                        "operator": "AND",
-                        "conditions": [
-                            {
-                                "type": "weather_check",
-                                "condition": "above",
-                                "time": "tomorrow 10 am",
-                                "data": {
-                                    "temperature": 20
-                                }
-                            },
-                            {
-                                "type": "training_check_by_trainer",
-                                "condition": "no_training",
-                                "time": "tomorrow 10 am",
-                                "data": {
-                                    "trainer": "Max"
-                                }
-                            },
-                        ]
                     }
                 ]
             },
@@ -371,6 +369,14 @@ const getPrompt = (text) => `
         ### Output:
         {
             "intent": "doctor_appointment",
+            "action_condition": {
+                "type": "appointment_check_by_doctor",
+                "condition": "no_appointment",
+                "time": "tomorrow 10 am",
+                "data": {
+                    "doctor": "Bill"
+                }
+            },
             "condition": {
                 "operator": "AND",
                 "conditions": [
@@ -385,14 +391,6 @@ const getPrompt = (text) => `
                         "time": "tomorrow 10 am",
                         "data": {
                             "temperature": 20
-                        }
-                    },
-                    {
-                        "type": "appointment_check_by_doctor",
-                        "condition": "no_appointment",
-                        "time": "tomorrow 10 am",
-                        "data": {
-                            "doctor": "Bill"
                         }
                     }
                 ]
@@ -410,34 +408,29 @@ const getPrompt = (text) => `
         ### Output:
         {
             "intent": "doctor_appointment",
+            "action_condition": {
+                "type": "appointment_check_by_doctor",
+                "condition": "no_appointment",
+                "time": "tomorrow 10 am",
+                "data": {
+                    "doctor": "Bill"
+                }
+            },
             "condition": {
-                "operator: "OR",
+                "operator": "OR",
                 "conditions": [
-                     {
+                    {
+                        "type": "weather_check",
+                        "condition": "above",
+                        "time": "tomorrow 10 am",
+                        "data": {
+                            "temperature": 20
+                        }
+                    },
+                    {
                         "type": "meeting_check",
                         "condition": "no_meeting",
                         "time": "tomorrow 10 am"
-                    },
-                    {
-                        "operator": "AND",
-                        "conditions": [
-                            {
-                                "type": "weather_check",
-                                "condition": "above",
-                                "time": "tomorrow 10 am",
-                                "data": {
-                                    "temperature": 20
-                                }
-                            },
-                            {
-                                "type": "appointment_check_by_doctor",
-                                "condition": "no_appointment",
-                                "time": "tomorrow 10 am",
-                                "data": {
-                                    "doctor": "Bill"
-                                }
-                            },
-                        ]
                     }
                 ]
             },
@@ -454,8 +447,16 @@ const getPrompt = (text) => `
         ### Output: 
         {
             "intent": "book_training",
+            "action_condition": {
+                "type": "training_check_by_trainer",
+                "time": "tomorrow 10 am",
+                "condition": "no_training",
+                "data": {
+                    "trainer": "Max"
+                }
+            },
             "condition": {
-                "operator: "OR",
+                "operator": "OR",
                 "conditions": [
                     {
                         "type": "meeting_check",
@@ -475,15 +476,7 @@ const getPrompt = (text) => `
                                 "condition": "above",
                                 "time": "tomorrow 10 am",
                                 "data": {
-                                    "temperature": 20,
-                                }
-                            }, 
-                            {
-                                "type": "training_check_by_trainer",
-                                "time": "tomorrow 10 am",
-                                "condition": "no_training",
-                                "data": {
-                                    "trainer": "Max"
+                                    "temperature": 20
                                 }
                             }
                         ]
@@ -503,6 +496,14 @@ const getPrompt = (text) => `
         ### Output: 
         {
             "intent": "doctor_appointment",
+            "action_condition": {
+                "type": "appointment_check_by_doctor",
+                "time": "tomorrow 10 am",
+                "condition": "no_appointment",
+                "data": {
+                    "doctor": "Bill"
+                }
+            },
             "condition": {
                 "operator": "OR",
                 "conditions": [
@@ -524,18 +525,10 @@ const getPrompt = (text) => `
                                 "condition": "above",
                                 "time": "tomorrow 10 am",
                                 "data": {
-                                    "temperature": 20,
-                                }
-                            },
-                            {
-                                "type": "appointment_check_by_doctor",
-                                "time": "tomorrow 10 am",
-                                "condition": "no_appointment",
-                                "data": {
-                                    "doctor": "Bill"
+                                    "temperature": 20
                                 }
                             }
-                        ]
+                        ]   
                     }
                 ]
             },
