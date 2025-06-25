@@ -8,10 +8,15 @@ const getPrompt = (text) => `
 
         ---
 
-        ## 🔒 Output Format Rules:
-        - Respond with a single valid **JSON object**
-        - Respond ONLY with a valid JSON object. Do NOT explain. Do NOT include code blocks or markdown.
-        - All keys and values must be in plain JSON, properly quoted
+        ## Output Format Rules (STRICT)
+        - 🛑 DO NOT SAY ANYTHING EXCEPT JSON
+        - 🛑 NO explanations, NO markdown, NO 'here is the output'  
+        - 🛑 Respond ONLY with raw JSON that starts with '{' and ends with '}'
+        - 🛑 REMINDER: OUTPUT MUST START WITH { and END WITH }. NO OTHER TEXT.
+        - 🛑 DO NOT WRITE ANYTHING EXCEPT RAW JSON !!
+        - 🛑 No 'The output will be', 'Here is output based on you input', 'The output for your input would be', should be used in response -> onnyl VALID JSON!!!
+
+        ❗️Reminder: Your output must be only a valid JSON object, without code blocks or explanations.
 
         ## JSON Object Structure
 

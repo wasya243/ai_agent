@@ -124,6 +124,12 @@ const performAction = async (intent) => {
     }
 }
 
+function extractJson(text) {
+  const jsonMatch = text.match(/{[\s\S]*}/);
+  if (!jsonMatch) throw new Error("No JSON found");
+  return JSON.parse(jsonMatch[0]);
+}
+
 app.post('/api/extract-intent', async (req, res) => {
     const { text } = req.body;
 
@@ -140,17 +146,23 @@ app.post('/api/extract-intent', async (req, res) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model: 'llama3.2',
+                model: 'mistral:7b',
                 prompt: prompt,
                 stream: false
             }),
         });
 
-        const data = await response.json();
+        const dataText = await response.json();
+        // console.log('dataText1', dataText);
+        const json = extractJson(dataText.response);
 
-        const output = JSON.parse(data.response);
+        console.log('object', JSON.stringify(json))
 
-        logger.info({ data: JSON.stringify(output) }, 'Parsed string');
+        // const data = await response.json();
+
+        // const output = JSON.parse(data.response);
+
+        // logger.info({ data: JSON.stringify(output) }, 'Parsed string');
 
         // console.log("here-lol", JSON.stringify(output));
 
