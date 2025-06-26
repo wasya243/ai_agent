@@ -19,19 +19,6 @@ const PORT = process.env.PORT;
 app.use(cors());
 app.use(bodyParser.json());
 
-// const ACTION_CHECKERS = {
-//     'book_table': {
-//         actionCheckers: [checkIfBookingAvailable]
-//     },
-//     'doctor_appointment': {
-//         actionCheckers: [checkIfDoctorAppointmentCanBeDone]
-//     },
-//     'book_training': {
-//         actionCheckers: [checkIfTrainingCanBeMade]
-//     }
-// };
-
-// TODO: rewrite action performers based on new prompt
 const ACTION_PERFORMERS = {
     'book_table': {
         actions: [bookTable]
@@ -44,17 +31,22 @@ const ACTION_PERFORMERS = {
     }
 };
 
-// TODO: rewrite condition chekers based on new prompt
 const CONDITION_CHECKERS = {
     'meeting_check': checkIfNoMeetingIsPresent,
     'weather_check': checkWeather,
-    'doctor_appointment_check': checkIfNoDoctorAppointment,
-    'book_training_check': checkIfNoTraining,
-    'table_check': checkIfBookingAvailable,
-    // Add more as needed
+    'appointment_check': checkIfNoDoctorAppointment,
+    'training_check': checkIfNoTraining,
+    // TODO: maybe different function
+    'booking_check': checkIfBookingAvailable
 };
 
-// TODO: rewrite thif function so that it returns data related to condition related to action
+const ACTION_CHECKERS = {
+    'appointment_check_by_doctor': checkIfDoctorAppointmentCanBeDone,
+    'training_check_by_trainer': checkIfTrainingCanBeMade,
+      // TODO: maybe different function
+    'booking_check_by_table': checkIfBookingAvailable,
+}
+
 const evaluateConditionTree = async (node) => {
     if (!node) return true;
 
@@ -77,42 +69,38 @@ const evaluateConditionTree = async (node) => {
     return checker(node);
 };
 
+const checkIfActionConditionCanBeFullfilled = async (actionCondition) => {
+    const { type, time, data } = actionCondition;
+    const actionChecker = ACTION_CHECKERS[type];
+
+    if (!actionChecker) {
+        throw new Error('Unsupported action type');
+    }
+
+    return actionChecker(time, data);
+}
+
 
 const checkIfActionCanBeFullfilled = async (intent) => {
     const { intent: intentType, condition } = intent;
 
-    // const conditions = ACTION_CHECKERS[intentType]?.conditionCheckers;
     const actions = ACTION_PERFORMERS[intentType]?.actions;
 
-    // if (!conditions) return false;
-
-    let conditionCanBeFullfilled = true;
+    let areConditionsFullfilled = true;
 
     if (condition) {
-        conditionCanBeFullfilled = await evaluateConditionTree(condition);
+        areConditionsFullfilled = await evaluateConditionTree(condition);
     }
 
-    logger.info({ scope: 'checkIfActionCanBeFullfilled' }, `Action can be fullfilled: ${conditionCanBeFullfilled}`);
+    logger.info({ scope: 'checkIfActionCanBeFullfilled' }, `Conditions are fullfilled: ${areConditionsFullfilled}`);
 
     if (!conditionCanBeFullfilled) return false;
 
-    for (const fn of actions) {
-        const result = await fn(intent.action);
+    const actionCanBeFullfilled = await checkIfActionConditionCanBeFullfilled(intent.action_conditions);
 
-        if (!result) {
-            actionCanBeDone = false;
-            break;
-        }
-    }
+    logger.info({ scope: 'checkIfActionCanBeFullfilled' }, `Action condition is fullfilled: ${actionCanBeFullfilleds}`);
 
-    logger.info({ scope: 'checkIfActionCanBeFullfilled' }, `Action can be done: ${actionCanBeDone}`);
-
-    return actionCanBeDone;
-}
-
-const performAction = async (intent) => {
-    const { intent: intentType, condition } = intent;
-    const actions = ACTION_PERFORMERS[intentType]?.actions;
+    if (!actionCanBeFullfilled) return false;
 
     for (const fn of actions) {
         const result = await fn(intent.action);
@@ -122,6 +110,8 @@ const performAction = async (intent) => {
             break;
         }
     }
+
+     logger.info({ scope: 'checkIfActionCanBeFullfilled' }, `Action performed`);
 }
 
 function extractJson(text) {
@@ -153,22 +143,13 @@ app.post('/api/extract-intent', async (req, res) => {
         });
 
         const dataText = await response.json();
-        // console.log('dataText1', dataText);
         const json = extractJson(dataText.response);
 
-        console.log('object', JSON.stringify(json))
+        logger.info({ data: JSON.stringify(json) }, 'Parsed string');
 
-        // const data = await response.json();
+        const actionCanBeMade = await checkIfActionCanBeFullfilled(json);
 
-        // const output = JSON.parse(data.response);
-
-        // logger.info({ data: JSON.stringify(output) }, 'Parsed string');
-
-        // console.log("here-lol", JSON.stringify(output));
-
-        // const actionCanBeMade = await checkIfActionCanBeFullfilled(output);
-
-        // res.send({ actionCanBeDone: actionCanBeMade });
+        res.send({ actionCanBeDone: actionCanBeMade });
 
         res.send({ actionCanBeDone: true });
     } catch(err) {
